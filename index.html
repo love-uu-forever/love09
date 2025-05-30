@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -74,14 +35,16 @@
             font-size: 5vw;
             white-space: nowrap;
             opacity: 0.9;
-            text-shadow: 0 0 15px #ff69b4, 0 0 30px #ff69b4, 0 0 45px #ff69b4, 0 0 60px rgba(255, 105, 180, 0.7); /* Tăng cường hiệu ứng phát sáng */
+            text-shadow: 0 0 15px #ff69b4, 0 0 30px #ff69b4, 0 0 45px #ff69b4, 0 0 60px rgba(255, 105, 180, 0.7);
+            font-weight: bold; /* Tăng độ đậm của chữ */
+            -webkit-text-stroke: 1px rgba(255, 105, 180, 0.8); /* Thêm viền để chữ dày hơn */
             animation: fadeInOut 3s infinite alternate;
         }
         .heart {
             color: #ff4040;
             font-size: 4vw;
             opacity: 0.8;
-            text-shadow: 0 0 10px #ff4040, 0 0 20px #ff4040, 0 0 30px #ff4040; /* Hiệu ứng phát sáng cho trái tim */
+            text-shadow: 0 0 10px #ff4040, 0 0 20px #ff4040, 0 0 30px #ff4040;
             animation: float 5s infinite ease-in-out;
         }
         .rose {
@@ -89,7 +52,7 @@
             font-size: 3vw;
             opacity: 0.7;
             transform: rotate(45deg);
-            text-shadow: 0 0 10px #ff6347, 0 0 20px #ff6347, 0 0 30px #ff6347; /* Hiệu ứng phát sáng cho hoa hồng */
+            text-shadow: 0 0 10px #ff6347, 0 0 20px #ff6347, 0 0 30px #ff6347;
             animation: float 5s infinite ease-in-out;
         }
         .layer-1 { transform: translateZ(-400px); opacity: 0.6; font-size: 3vw; }
@@ -135,22 +98,16 @@
             "Love u so much",
   "I love you",
   "❤️Duyên❤️",
-"Love u so much",
+                 "Love u so much",
   "I love you",
   "❤️Duyên❤️",
- "Love u so much",
+                 "Love u so much",
   "I love you",
   "❤️Duyên❤️",
-                "Love u so much",
+                 "Love u so much",
   "I love you",
   "❤️Duyên❤️",
-                "Love u so much",
-  "I love you",
-  "❤️Duyên❤️",
-                "Love u so much",
-  "I love you",
-  "❤️Duyên❤️",
-                "Love u so much",
+                 "Love u so much",
   "I love you",
   "❤️Duyên❤️",
         ];
@@ -162,7 +119,7 @@
         let lastTouchX = 0, lastTouchY = 0;
         let lastMouseX = 0, lastMouseY = 0;
         let isDragging = false;
-        const maxTexts = 15;
+        // Loại bỏ giới hạn maxTexts để chữ rơi mãi mãi
         let activeTexts = [];
 
         function checkCollision(newX, newY, newWidth, newHeight) {
@@ -246,8 +203,6 @@
         }
 
         function createFallingText(initial = false) {
-            if (activeTexts.length >= maxTexts) return;
-
             const text = document.createElement("div");
             text.className = "falling-text";
             text.innerText = texts[Math.floor(Math.random() * texts.length)];
@@ -288,6 +243,8 @@
                 if (posY > window.innerHeight + 50) {
                     text.remove();
                     activeTexts = activeTexts.filter(t => t !== text);
+                    // Tạo chữ mới ngay khi một chữ biến mất để đảm bảo rơi mãi mãi
+                    createFallingText();
                 } else {
                     requestAnimationFrame(animate);
                 }
